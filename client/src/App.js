@@ -2,22 +2,21 @@ import './App.css';
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { Signup } from './signup/Signup';
 import { Login } from './login/Login';
-import { Plans } from './plans/Plans';
-import { ActivePlan } from './plans/ActivePlan';
-import { PaymentContainer } from './payment/PaymentContainer';
+import { Dashboard } from './dashboard/Dashboard';
+import {AppContextProvider} from "./context/AppContext"
 
 function App() {
     return (
         <div>
-            <PaymentContainer/>
+            <AppContextProvider>
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<Signup/>}></Route>
                     <Route path="/login" element={<Login/>}></Route>
+                    <Route path="/dashboard" element={<Dashboard/>}></Route>
                 </Routes>
             </BrowserRouter>
-            <Plans/>
-            <ActivePlan/>
+            </AppContextProvider>
         </div>  
     );
 }

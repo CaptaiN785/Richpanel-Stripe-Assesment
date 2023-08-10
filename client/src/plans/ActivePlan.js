@@ -1,16 +1,32 @@
+import { toast } from "react-toastify";
 import "./ActivePlan.css"
-import { yearlyPlans } from "./planData"
+import axios from "axios";
+import { useState } from "react";
+import { Loader } from "../components/Loader";
 
-const data = {
-    type: "Yearly",
-    plan: yearlyPlans[1],
-    startedOn: "Jul 11th, 2022",
-    expiresOn: "Jul 12th, 2023",
-    status: "active"
-}
+export const ActivePlan = ({user, changePlan,setUser}) => {
 
-export const ActivePlan = () => {
+    const [loading, setLoading] = useState(false);
 
+    function changePlanHandler(){
+        changePlan(true);
+    }
+
+    async function cancelPlan(){
+        setLoading(true);
+        const response = await axios.post("https://richpanel.cyclic.app/plan/cancel", {
+            id: user._id
+        });
+
+        if(response.status === 200){
+            toast.success("Plan cancelled successfully");
+            setUser(response.data.user);
+            localStorage.setItem("item", JSON.stringify(response.data.user));
+        }else{
+            toast.error("Unabel to cancel")
+        }
+        setLoading(false);
+    }
 
     return (
         <div id="active-plan">
@@ -19,15 +35,15 @@ export const ActivePlan = () => {
                     <div>
                         <h3>Current Plan Details</h3>
                         {
-                            data.status === "active" ? 
+                            user.planstatus? 
                                 (<span className="active">Active</span>):
                                 (<span className="cancelled">Cancelled</span>)
                         }
                     </div>
                     {
-                        data.status === "active" && (
+                        user.planstatus && (
                             <div>
-                                <button type="button">Cancel</button>
+                                <button onClick={cancelPlan} type="button">Cancel</button>
                             </div>
                         )
                     }
@@ -35,25 +51,25 @@ export const ActivePlan = () => {
 
                 <div className="plan-body">
                     <div>
-                        <p>{data.plan.type}</p>
-                        <p>{data.plan.devices.join("+")}</p>
+                        <p>{user.plan.type}</p>
+                        <p>{user.plan.devices.join("+")}</p>
                     </div>
                     <div>
-                        <h2>₹ {data.plan.price}<span>/{data.type === "Monthly" ? "mo" : "yr"}</span></h2>
+                        <h2>₹ {user.plan.price}<span>/{user.plan.billing === "Monthly" ? "mo" : "yr"}</span></h2>
                     </div>
                     <div>
-                        <button type="button">Change Plan</button>
+                        <button onClick={changePlanHandler} type="button">Change Plan</button>
                     </div>
                     <div>
                         <p>
                         {
-                            data.status === "active" ? ("Your subscription has started on " 
-                                    + data.startedOn 
+                            user.planstatus ? ("Your subscription has started on " 
+                                    + user.startedon
                                     + " and will auto renew on " 
-                                    + data.expiresOn+".") :
+                                    + user.expireson+".") :
                                     (
                                         "Your subscription was cancelled and you will loose access to service on "
-                                        + data.expiresOn + "."
+                                        + user.expireson + "."
                                     )
                         }
                         </p>
@@ -61,6 +77,9 @@ export const ActivePlan = () => {
                 </div>
 
             </div>
+            {
+                loading && <Loader/>
+            }
         </div>   
     )
 }

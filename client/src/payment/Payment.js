@@ -1,8 +1,10 @@
-import {BiCreditCardFront} from "react-icons/bi"
 import "./Payment.css"
-import { useState } from "react"
 import { useStripe, useElements, CardElement} from "@stripe/react-stripe-js"
 import axios from "axios"
+import { useNavigate } from "react-router-dom"
+import { toast } from "react-toastify"
+import { useState } from "react"
+import { Loader } from "../components/Loader"
 
 const CARD_OPTIONS = {
 	iconStyle: "solid",
@@ -24,13 +26,18 @@ const CARD_OPTIONS = {
 	}
 }
 
-export const Payment = ({data}) => {
+export const Payment = ({data, setMakePayment}) => {
     
+    const [loading, setLoading] = useState(false);
+
     const stripe = useStripe();
     const elements = useElements();
+    const navigate = useNavigate();
 
     async function paymentHandler(event){
         event.preventDefault();
+        setLoading(true);
+        const userid = JSON.parse(localStorage.getItem("user"))._id;
 
         const {error, paymentMethod} = await stripe.createPaymentMethod({
             type:"card",
@@ -42,21 +49,29 @@ export const Payment = ({data}) => {
             try{
                 const {id} = paymentMethod;
                 
-                const response = await axios.post("http://localhost:4000/payment",{
-                    amount: data.plan.price,
-                    id
+                const response = await axios.post("https://richpanel.cyclic.app/plan/subscribe",{
+                    plan:data._id,
+                    id,
+                    userid
                 })
-
-                if(response.data.success){
-                    // do something
+                console.log(response)
+                if(response.status === 200){
+                    toast.success(response.data.message)
+                    localStorage.setItem("user", JSON.stringify(response.data.user));
+                    setMakePayment(false);
+                }else{
+                    toast.error(response.data.message)    
+                    navigate("/dashboard")
                 }
-
             }catch(err){
                 console.log("Error, ", err);
+                toast.error("Internal server error")
             }   
         }else{
             console.log("error, ", error)
+            toast.error("Unable to make payment")
         }
+        setLoading(false);
     }
 
     return (
@@ -85,17 +100,17 @@ export const Payment = ({data}) => {
                     <div className="summary-body">
                         <div>
                             <p>Plan Name</p>
-                            <p>{data.plan.type}</p>
-                        </div>
-                        <div>
-                            <p>Billing Cycle</p>
                             <p>{data.type}</p>
                         </div>
                         <div>
+                            <p>Billing Cycle</p>
+                            <p>{data.billing}</p>
+                        </div>
+                        <div>
                             <p>Plan price</p>
-                            <p>₹ {data.plan.price}
+                            <p>₹ {data.price}
                             {
-                                data.type.toLowerCase() === "monthly" ? 
+                                data.billing.toLowerCase() === "monthly" ? 
                                 ("/mo")
                                 :
                                 ("/yr")
@@ -104,6 +119,9 @@ export const Payment = ({data}) => {
                     </div>
                 </div>
             </div>
+            {
+                loading && <Loader/>
+            }
         </div>    
     )
 }

@@ -1,16 +1,22 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react"
 import "../signup/Signup.css"
 import "./Login.css"
+import axios from "axios"
+import { toast } from "react-toastify"
+import { Loader } from "../components/Loader"
+
+
+const initialFormData = {
+    email:"",
+    password:"",
+    rememberme: false
+}
 
 export const Login = () => {
 
-    const initialFormData = {
-        email:"",
-        password:"",
-        rememberme: false
-    }
-
+    const [loader, setLoader] = useState(false);
+    const navigate = useNavigate();
     const [formData, setFormData] = useState(initialFormData);
 
     function inputChangeHandler(event){
@@ -23,9 +29,27 @@ export const Login = () => {
         })
     }
 
-    function submitHandler(event){
+    async function submitHandler(event){
         event.preventDefault();
-        console.log(formData);
+        setLoader(true);
+        try{
+            const response = await axios.post("https://richpanel.cyclic.app/user/login", {
+                email: formData.email,
+                password: formData.password
+            })
+            
+            if(response.data.success){
+                toast.success(response.data.message);
+                localStorage.setItem("token", response.data.token)
+                localStorage.setItem("user", JSON.stringify(response.data.user))
+                navigate("/dashboard")
+            }else{
+                toast.warn(response.data.message);
+            }
+        }catch(err){
+            toast.error("Internal server error");
+        }
+        setLoader(false);
     }
 
     return (
@@ -83,6 +107,9 @@ export const Login = () => {
                     <p>New to MyApp? <Link className="nav-link" to="/"> Sign Up </Link> </p>
                 </div>
             </form>
+            {
+                loader && <Loader/>
+            }
         </div>    
     )
 }

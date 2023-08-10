@@ -1,6 +1,9 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react"
 import "./Signup.css"
+import axios from "axios"
+import { toast } from "react-toastify"
+import {Loader} from "../components/Loader"
 
 export const Signup = () => {
 
@@ -10,6 +13,8 @@ export const Signup = () => {
         password:"",
         rememberme: false
     }
+    const [loader, setLoader] = useState(false);
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState(initialFormData);
 
@@ -23,9 +28,23 @@ export const Signup = () => {
         })
     }
 
-    function submitHandler(event){
+    async function submitHandler(event){
         event.preventDefault();
+        setLoader(true);
+        const response = await axios.post("https://richpanel.cyclic.app/user/signup", {
+            name:formData.username,
+            email: formData.email,
+            password: formData.password
+        })
         
+        if(response.status === 200){
+            navigate("/login");
+            toast.success("Sign up successfully");
+        }else{
+            toast.error("Unable to sign up")
+            toast.info("Please try again")
+        }
+        setLoader(false);
     }
 
     return (
@@ -95,6 +114,9 @@ export const Signup = () => {
                     <p>Already have an account? <Link className="nav-link" to="/login"> Login </Link> </p>
                 </div>
             </form>
+            {
+                loader && <Loader/>
+            }
         </div>   
     )
 }

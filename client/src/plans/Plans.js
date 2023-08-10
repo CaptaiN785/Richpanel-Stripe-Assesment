@@ -1,28 +1,68 @@
 import { useEffect, useState } from "react"
 import "./Plans.css"
-import { monthlyPlans, yearlyPlans } from "./planData";
+import axios from "axios";
+import { Loader } from "../components/Loader";
 
-export const Plans = () => {
+export const Plans = ({setChoosePlan, setMakePayment, changePlan}) => {
     
-    const [curPlan, setCurPlan] = useState("Mobile");
-    const [plans, setPlans] = useState(monthlyPlans);
+    const [curPlan, setCurPlan] = useState();
+    const [plans, setPlans] = useState(null);
     const [type, setType] = useState("Monthly");
+    const [allPlan, setAllPlan] = useState([]);
+    const [dataLoaded, setDataLoaded] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    async function changeType(){
+        setLoading(true);
+        let data = [];
+        allPlan.forEach(plan => {
+            if(plan.billing === type){
+                data.push(plan);
+            }
+        })
+        setPlans(data);
+        setCurPlan(data[0]);
+        setLoading(false);
+    }
+
+    async function loadData() {
+        setLoading(true);
+        try{
+            const res = await axios.get("https://richpanel.cyclic.app/plan")
+            console.log(res);
+            setAllPlan(res.data.data);
+        }catch(err){
+            console.log("Error while loading data, ", err);
+        }
+        setLoading(false);
+    }
+
+    useEffect(() => {
+        if(!dataLoaded){
+            loadData();
+            setDataLoaded(true);
+        }
+    }, [])
+
+    useEffect(() => {
+        changeType();
+    }, [type, allPlan])
 
     function changeTypeHandler(event){
         const {checked} = event.target;
-        
         if(checked){
-            setPlans(yearlyPlans);
-            setType("Yearly")
+            setType("Yearly");
         }else{
-            setPlans(monthlyPlans);
-            setType("Monthly")
+            setType("Monthly");
         }
     }
 
     function submitHandler(event){
         event.preventDefault();
-        console.log(type, curPlan);
+        console.log(curPlan);
+        setChoosePlan(curPlan);
+        changePlan(false);
+        setMakePayment(true);
     }
 
     return (
@@ -31,12 +71,12 @@ export const Plans = () => {
                 <div className="plans-header">
                     <h3>Choose the right plan for you</h3>
                 </div>
-
+                
                 <div className="plans-div" >
                     <div className="plan-col">
                         <div id="plan-selector">
                             <input 
-                                type="checkbox" 
+                                type="checkbox"
                                 name="subType" 
                                 id="subType"
                                 checked = {type === "Yearly"}
@@ -61,7 +101,7 @@ export const Plans = () => {
                         </div>
                     </div>
                     {
-                        plans.map((plan,index)=> {
+                        loading ? (<Loader/>) : plans?.map((plan,index)=> {
                             return (
                                 <div key={index}>
                                     <input 
@@ -69,11 +109,11 @@ export const Plans = () => {
                                         type="radio" 
                                         name="plan"
                                         id={plan.type}
-                                        checked={curPlan === plan.type}
+                                        checked={curPlan.type === plan.type}
                                         readOnly
                                     ></input>
                                     <label htmlFor={plan.type} className="plan-col">
-                                        <div onClick={() => setCurPlan(plan.type)}>
+                                        <div onClick={() => setCurPlan(plan)}>
                                             <p>{plan.type}</p>
                                         </div>
                                         <div>
@@ -100,7 +140,7 @@ export const Plans = () => {
                             )
                         })
                     }
-                </div>
+                    </div>
                 <div className="plans-footer">
                     <div className="input-control">
                         <div className="button-control">
@@ -109,6 +149,9 @@ export const Plans = () => {
                     </div>
                 </div>
             </form>
+            { 
+                loading && <Loader/>
+            }
         </div>
     )
 }
