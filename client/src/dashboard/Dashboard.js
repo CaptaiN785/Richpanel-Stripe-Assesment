@@ -1,5 +1,3 @@
-import { useContext } from "react"
-import { AppContext } from "../context/AppContext"
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { ActivePlan} from "../plans/ActivePlan";
@@ -34,7 +32,7 @@ export const Dashboard = () => {
     }
 
     return (
-        <div>
+        <div className="dashboard">
             <div className="logout">
                 <button onClick={logout} type="button">Logout</button>
             </div>

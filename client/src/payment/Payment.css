@@ -5,6 +5,7 @@
     justify-content: center;
     align-items: center;
     background: var(--primary-color);
+    padding:1rem;
 }
 
 .payment-container{
@@ -78,7 +79,28 @@
 .summary-body > div{
     display: flex;
     justify-content: space-between;
+    align-items: center;
     gap: 8rem;
+}
+@media  screen and (max-width: 860px) {
+    .summary-body > div{
+        gap:2rem;
+    }
+    .card-element{
+        min-width: 300px;
+    }
+    .payment-container{
+        gap:1rem;
+    }
+}
+@media  screen and (max-width: 700px){
+    .payment-container{
+        flex-direction: column-reverse;
+        margin-top: 8rem;
+    }
+    #payment-page{
+        padding: 3rem 1rem;
+    }
 }
 .summary-body div p{
     font-size:0.9rem;

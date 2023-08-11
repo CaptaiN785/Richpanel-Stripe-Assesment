@@ -19,6 +19,9 @@
 
 
 /* adding dashboard css */
+.dashboard{
+    /* padding:1rem; */
+}
 .logout{
     position:absolute;
     padding:1rem;
